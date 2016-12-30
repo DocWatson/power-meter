@@ -13,4 +13,4 @@ Coming soon.
 
 ## Demo
 
-Coming soon.
+Test it out at [https://docwatson.github.io/power-meter/](https://docwatson.github.io/power-meter/).
