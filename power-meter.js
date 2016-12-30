@@ -3,7 +3,7 @@ PowerMeter = {
 	minMeterLevel: 0,
 	maxMeterLevel: 100,
 	currentMeterLevel: 0,
-	meterSpeed: .85,
+	meterSpeed: .66,
 	meterDir: "inc",
 	incrmenter: undefined,
 	accTolerance: 3,
@@ -23,24 +23,32 @@ PowerMeter = {
 		increment = (PowerMeter.meterDir == "inc" ? 1 : -1);
 		PowerMeter.currentMeterLevel += (increment * PowerMeter.meterSpeed);
 		PowerMeter.meterValueElem.innerText = PowerMeter.currentMeterLevel;
-		PowerMeter.meterTrackerElem.style.left = PowerMeter.currentMeterLevel + "%";
+		PowerMeter.meterTrackerElem.style.transform = "translateX(" + PowerMeter.currentMeterLevel  + "%)";
+
+		// if we reach the end of the meter, reverse direction
 		if (PowerMeter.currentMeterLevel > PowerMeter.maxMeterLevel) {
 			PowerMeter.meterDir = "dec";
 		} else if (PowerMeter.currentMeterLevel < PowerMeter.minMeterLevel){
-			PowerMeter.destroyIncrementer();
+			PowerMeter.currentMeterLevel = 0;
+			PowerMeter.setAndCheckAccuracy();
+		}
+
+		// If the meter is still running, keep animating
+		if (PowerMeter.meterStarted) {
+			window.requestAnimationFrame(PowerMeter.incrementMeter)
 		}
 	},
 
 	clickHandler: function(){
-		if (!PowerMeter.meterStarted) {
+		if (!PowerMeter.meterStarted && ! PowerMeter.meterAccSet) {
 			PowerMeter.meterStarted = true;
 			console.log("Start Meter");
-			PowerMeter.incrementer = setInterval(PowerMeter.incrementMeter, 17); // run 60 times/second
+			PowerMeter.incrementer = window.requestAnimationFrame(PowerMeter.incrementMeter); // run 60 times/second
 			PowerMeter.incrementMeter();
 		} else if (!PowerMeter.meterPowerSet) {
 			PowerMeter.meterPowerSet = true;
 			PowerMeter.chosenPower = PowerMeter.currentMeterLevel;
-			PowerMeter.powerTrackerElem.style.left = PowerMeter.currentMeterLevel + "%"
+			PowerMeter.powerTrackerElem.style.left = PowerMeter.chosenPower + "%";
 			PowerMeter.powerTrackerElem.style.opacity = "1";
 			console.log("Power Set: " + PowerMeter.chosenPower);
 		} else if (!PowerMeter.meterAccSet) {
@@ -51,6 +59,7 @@ PowerMeter = {
 
 	setAndCheckAccuracy: function() {
 		PowerMeter.meterAccSet = true;
+		PowerMeter.meterStarted = false;
 		currAcc = PowerMeter.currentMeterLevel;
 		PowerMeter.chosenAcc = currAcc;
 		upperAccBound = PowerMeter.startingMeterLevel + PowerMeter.accTolerance;
@@ -65,11 +74,7 @@ PowerMeter = {
 		} else {
 			alert("Awful shot!");
 		}
-		PowerMeter.destroyIncrementer();
-	},
 
-	destroyIncrementer: function() {
-		clearInterval(PowerMeter.incrementer);
 	},
 
 	resetMeter: function(){
